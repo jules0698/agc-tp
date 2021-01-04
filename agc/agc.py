@@ -12,7 +12,9 @@
 #    http://www.gnu.org/licenses/gpl-3.0.html
 
 """OTU clustering"""
-
+#from operator import itemgetter
+#import random
+import gzip
 import argparse
 import sys
 import os
@@ -23,13 +25,13 @@ from collections import Counter
 # ftp://ftp.ncbi.nih.gov/blast/matrices/
 import nwalign3 as nw
 
-__author__ = "Your Name"
+__author__ = "Jules Collat"
 __copyright__ = "Universite Paris Diderot"
-__credits__ = ["Your Name"]
+__credits__ = ["Jules COllat"]
 __license__ = "GPL"
 __version__ = "1.0.0"
-__maintainer__ = "Your Name"
-__email__ = "your@email.fr"
+__maintainer__ = "Jules Collat"
+__email__ = "collatjule@eisti.eu"
 __status__ = "Developpement"
 
 
@@ -70,14 +72,50 @@ def get_arguments():
     return parser.parse_args()
 
 def read_fasta(amplicon_file, minseqlen):
-    pass
-
+    #
+    # retourne un générateur de séquences de longueur I >= minseqlen
+    #
+    seq = ''
+    with gzip.open(amplicon_file, "rt") as ampliconfile :
+        for line in ampliconfile:
+            line = line.replace("\n","")
+            
+            if   line != '' and line[:1] != ">" :
+                seq+=line
+            else:
+                if len(seq) >= minseqlen:
+                    yield seq
+                seq =''   
+                
 
 def dereplication_fulllength(amplicon_file, minseqlen, mincount):
-    pass
-
+    #
+    # retourne un générateur des séquences uniques ayant une occurrence O >= mincount ainsi que leur occurrence
+    #
+    dict_seq = {}
+    generator =read_fasta(amplicon_file,minseqlen)
+    for sequence in generator:
+        if sequence not in dict_seq:
+            dict_seq[sequence] = 1
+        else:
+            dict_seq[sequence]+=1
+    
+    for seq, count in sorted(dict_seq.items(), key=lambda item: item[1], reverse=True):
+        if count >= mincount:
+            yield[seq,count]
+    
 
 def get_chunks(sequence, chunk_size):
+    #
+    # retourne une liste de sous-séquences de taille I non chevauchantes.
+    #
+    liste_segment = []
+    for i in range(0, len(sequence), chunk_size):
+        if i+chunk_size <= len(sequence):
+            liste_segment.append(sequence[i:i+chunk_size])
+    if len(liste_segment)>=4:
+        return liste_segment
+    
     pass
 
 def get_unique(ids):
@@ -88,23 +126,60 @@ def common(lst1, lst2):
     return list(set(lst1) & set(lst2))
 
 def cut_kmer(sequence, kmer_size):
-    pass
+    #
+    # retourne un générateur de tous les mots de longueur k présents dans cette séquence.
+    #
+    for i in range (len(sequence) - kmer_size +1):
+        yield sequence[i :i+kmer_size]
+    
 
 def get_identity(alignment_list):
+    #
+    #retourne le pourcentage d'identité entre les deux séquences.
+    #
+    nuc_identique = 0
+    for i in range(len(alignment_list[0])):
+        if alignment_list[0][i] == alignment_list[1][i]:
+            nuc_identique += 1
+    
+    return (nuc_identique/len(alignment_list[0])) * 100
+
+def get_unique_kmer(kmer_dict : dict, sequence : str, id_seq : int, kmer_size : int):   
+    pass
+
+
+def search_mates(kmer_dict : dict, sequence : str, kmer_size : int):
+    pass
+
+def detect_chimera(perc_identity_matrix):
     pass
 
 def chimera_removal(amplicon_file, minseqlen, mincount, chunk_size, kmer_size):
     pass
 
 def abundance_greedy_clustering(amplicon_file, minseqlen, mincount, chunk_size, kmer_size):
-    pass
+    OTU = []
+    seq_count = chimera_removal(amplicon_file, minseqlen, mincount, chunk_size, kmer_size)
+    for seq, count in seq_count:
+        OTU.append(tuple(seq, count))
+    return OTU
 
 def fill(text, width=80):
     """Split text with a line return to respect fasta format"""
     return os.linesep.join(text[i:i+width] for i in range(0, len(text), width))
 
 def write_OTU(OTU_list, output_file):
-    pass
+    #
+    # affiche les OTU au format 
+    # >OTU_{numéro partant de 1} occurrence:{nombre d'occurrence à la déréplication}
+    # {séquence au format fasta}
+    #
+    with open(output_file, "w") as outputfile:
+        for i,OTU in enumerate(OTU_list):
+            outputfile.write(">OTU_{} occurrence:{}\n".format(i+1, OTU[1]))
+            outputfile.write("{}\n".format(fill(OTU[0])))
+            
+    
 #==============================================================
 # Main program
 #==============================================================
