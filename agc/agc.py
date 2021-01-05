@@ -158,11 +158,7 @@ def chimera_removal(amplicon_file, minseqlen, mincount, chunk_size, kmer_size):
     pass
 
 def abundance_greedy_clustering(amplicon_file, minseqlen, mincount, chunk_size, kmer_size):
-    OTU = []
-    seq_count = chimera_removal(amplicon_file, minseqlen, mincount, chunk_size, kmer_size)
-    for seq, count in seq_count:
-        OTU.append(tuple(seq, count))
-    return OTU
+    
 
 def fill(text, width=80):
     """Split text with a line return to respect fasta format"""
