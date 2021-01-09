@@ -158,17 +158,30 @@ def get_unique_kmer(kmer_dict : dict, sequence : str, id_seq : int, kmer_size : 
 
 
 def search_mates(kmer_dict : dict, sequence : str, kmer_size : int):
+    """
+    retourne les 8 séquences les plus similaires à notre séquence entrée
+    """
     return [i[0] for i in Counter([ids for kmer in cut_kmer(sequence, kmer_size)
         if kmer in kmer_dict for ids in kmer_dict[kmer]]).most_common(8)]
     
 
 def detect_chimera(perc_identity_matrix):
+    """
+    retourne un booléen indiquant si la séquence candidate est une chimère(True)
+    ou ne l'est pas(False)
+    """
     pass
 
 def chimera_removal(amplicon_file, minseqlen, mincount, chunk_size, kmer_size):
+    """
+    retourne un générateur des séquences non chimérique au format : yield[sequence, count]
+    """
     pass
 
 def abundance_greedy_clustering(amplicon_file, minseqlen, mincount, chunk_size, kmer_size):
+    """
+    retourne une liste d'OTU, cette liste indiquera pour chaque séquence son occurrence(count)
+    """
     pass
     
 
