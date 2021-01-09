@@ -72,9 +72,9 @@ def get_arguments():
     return parser.parse_args()
 
 def read_fasta(amplicon_file, minseqlen):
-    #
-    # retourne un générateur de séquences de longueur I >= minseqlen
-    #
+    """
+     retourne un générateur de séquences de longueur I >= minseqlen
+    """
     seq = ''
     with gzip.open(amplicon_file, "rt") as ampliconfile :
         for line in ampliconfile:
@@ -89,9 +89,9 @@ def read_fasta(amplicon_file, minseqlen):
                 
 
 def dereplication_fulllength(amplicon_file, minseqlen, mincount):
-    #
-    # retourne un générateur des séquences uniques ayant une occurrence O >= mincount ainsi que leur occurrence
-    #
+    """
+     retourne un générateur des séquences uniques ayant une occurrence O >= mincount ainsi que leur occurrence
+    """
     dict_seq = {}
     generator =read_fasta(amplicon_file,minseqlen)
     for sequence in generator:
@@ -106,9 +106,9 @@ def dereplication_fulllength(amplicon_file, minseqlen, mincount):
     
 
 def get_chunks(sequence, chunk_size):
-    #
-    # retourne une liste de sous-séquences de taille I non chevauchantes.
-    #
+    """
+     retourne une liste de sous-séquences de taille I non chevauchantes.
+    """
     liste_segment = []
     for i in range(0, len(sequence), chunk_size):
         if i+chunk_size <= len(sequence):
@@ -126,17 +126,17 @@ def common(lst1, lst2):
     return list(set(lst1) & set(lst2))
 
 def cut_kmer(sequence, kmer_size):
-    #
-    # retourne un générateur de tous les mots de longueur k présents dans cette séquence.
-    #
+    """
+     retourne un générateur de tous les mots de longueur k présents dans cette séquence.
+    """
     for i in range (len(sequence) - kmer_size +1):
         yield sequence[i :i+kmer_size]
     
 
 def get_identity(alignment_list):
-    #
-    #retourne le pourcentage d'identité entre les deux séquences.
-    #
+    """
+    retourne le pourcentage d'identité entre les deux séquences.
+    """
     nuc_identique = 0
     for i in range(len(alignment_list[0])):
         if alignment_list[0][i] == alignment_list[1][i]:
@@ -145,11 +145,22 @@ def get_identity(alignment_list):
     return (nuc_identique/len(alignment_list[0])) * 100
 
 def get_unique_kmer(kmer_dict : dict, sequence : str, id_seq : int, kmer_size : int):   
-    pass
+    """
+    retourne un dictionnaire de kmer contenant les kmers uniques présents dans chaque séquence pour 
+    une longueur de donnée de kmer
+    """
+    for kmer in cut_kmer(sequence, kmer_size):
+        if kmer not in kmer_dict:
+            kmer_dict[kmer]= []
+        kmer_dict[kmer].append(id_seq)
+    return kmer_dict
+    
 
 
 def search_mates(kmer_dict : dict, sequence : str, kmer_size : int):
-    pass
+    return [i[0] for i in Counter([ids for kmer in cut_kmer(sequence, kmer_size)
+        if kmer in kmer_dict for ids in kmer_dict[kmer]]).most_common(8)]
+    
 
 def detect_chimera(perc_identity_matrix):
     pass
@@ -158,18 +169,21 @@ def chimera_removal(amplicon_file, minseqlen, mincount, chunk_size, kmer_size):
     pass
 
 def abundance_greedy_clustering(amplicon_file, minseqlen, mincount, chunk_size, kmer_size):
+    pass
     
 
 def fill(text, width=80):
-    """Split text with a line return to respect fasta format"""
+    """
+    Split text with a line return to respect fasta format
+    """
     return os.linesep.join(text[i:i+width] for i in range(0, len(text), width))
 
 def write_OTU(OTU_list, output_file):
-    #
-    # affiche les OTU au format 
-    # >OTU_{numéro partant de 1} occurrence:{nombre d'occurrence à la déréplication}
-    # {séquence au format fasta}
-    #
+    """
+     affiche les OTU au format 
+     >OTU_{numéro partant de 1} occurrence:{nombre d'occurrence à la déréplication}
+     {séquence au format fasta}
+    """
     with open(output_file, "w") as outputfile:
         for i,OTU in enumerate(OTU_list):
             outputfile.write(">OTU_{} occurrence:{}\n".format(i+1, OTU[1]))
