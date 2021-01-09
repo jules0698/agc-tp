@@ -34,7 +34,6 @@ __maintainer__ = "Jules Collat"
 __email__ = "collatjule@eisti.eu"
 __status__ = "Developpement"
 
-
 def isfile(path):
     """Check if path is an existing file.
       :Parameters:
@@ -48,7 +47,6 @@ def isfile(path):
         raise argparse.ArgumentTypeError(msg)
     return path
 
-
 def get_arguments():
     """Retrieves the arguments of the program.
       Returns: An object that contains the arguments
@@ -57,18 +55,18 @@ def get_arguments():
     parser = argparse.ArgumentParser(description=__doc__, usage=
                                      "{0} -h"
                                      .format(sys.argv[0]))
-    parser.add_argument('-i', '-amplicon_file', dest='amplicon_file', type=isfile, required=True, 
+    parser.add_argument('-i', '-amplicon_file', dest = 'amplicon_file', type = isfile, required=True, 
                         help="Amplicon is a compressed fasta file (.fasta.gz)")
-    parser.add_argument('-s', '-minseqlen', dest='minseqlen', type=int, default = 400,
+    parser.add_argument('-s', '-minseqlen', dest = 'minseqlen', type = int, default = 400,
                         help="Minimum sequence length for dereplication")
-    parser.add_argument('-m', '-mincount', dest='mincount', type=int, default = 10,
+    parser.add_argument('-m', '-mincount', dest = 'mincount', type=int, default = 10,
                         help="Minimum count for dereplication")
-    parser.add_argument('-c', '-chunk_size', dest='chunk_size', type=int, default = 100,
+    parser.add_argument('-c', '-chunk_size', dest = 'chunk_size', type = int, default = 100,
                         help="Chunk size for dereplication")
-    parser.add_argument('-k', '-kmer_size', dest='kmer_size', type=int, default = 8,
+    parser.add_argument('-k', '-kmer_size', dest = 'kmer_size', type = int, default = 8,
                         help="kmer size for dereplication")
-    parser.add_argument('-o', '-output_file', dest='output_file', type=str,
-                        default="OTU.fasta", help="Output file")
+    parser.add_argument('-o', '-output_file', dest = 'output_file', type = str,
+                        default="OTU.fasta", help = "Output file")
     return parser.parse_args()
 
 def read_fasta(amplicon_file, minseqlen):
@@ -79,7 +77,6 @@ def read_fasta(amplicon_file, minseqlen):
     with gzip.open(amplicon_file, "rt") as ampliconfile :
         for line in ampliconfile:
             line = line.replace("\n","")
-            
             if   line != '' and line[:1] != ">" :
                 seq+=line
             else:
@@ -87,24 +84,22 @@ def read_fasta(amplicon_file, minseqlen):
                     yield seq
                 seq =''   
                 
-
 def dereplication_fulllength(amplicon_file, minseqlen, mincount):
     """
      retourne un générateur des séquences uniques ayant une occurrence O >= mincount ainsi que leur occurrence
     """
     dict_seq = {}
-    generator =read_fasta(amplicon_file,minseqlen)
+    generator = read_fasta(amplicon_file,minseqlen)
     for sequence in generator:
         if sequence not in dict_seq:
             dict_seq[sequence] = 1
         else:
-            dict_seq[sequence]+=1
+            dict_seq[sequence]+= 1
     
     for seq, count in sorted(dict_seq.items(), key=lambda item: item[1], reverse=True):
         if count >= mincount:
             yield[seq,count]
     
-
 def get_chunks(sequence, chunk_size):
     """
      retourne une liste de sous-séquences de taille I non chevauchantes.
@@ -115,12 +110,10 @@ def get_chunks(sequence, chunk_size):
             liste_segment.append(sequence[i:i+chunk_size])
     if len(liste_segment)>=4:
         return liste_segment
-    
     pass
 
 def get_unique(ids):
     return {}.fromkeys(ids).keys()
-
 
 def common(lst1, lst2): 
     return list(set(lst1) & set(lst2))
@@ -132,7 +125,6 @@ def cut_kmer(sequence, kmer_size):
     for i in range (len(sequence) - kmer_size +1):
         yield sequence[i :i+kmer_size]
     
-
 def get_identity(alignment_list):
     """
     retourne le pourcentage d'identité entre les deux séquences.
@@ -151,12 +143,10 @@ def get_unique_kmer(kmer_dict : dict, sequence : str, id_seq : int, kmer_size : 
     """
     for kmer in cut_kmer(sequence, kmer_size):
         if kmer not in kmer_dict:
-            kmer_dict[kmer]= []
+            kmer_dict[kmer] = []
         kmer_dict[kmer].append(id_seq)
     return kmer_dict
     
-
-
 def search_mates(kmer_dict : dict, sequence : str, kmer_size : int):
     """
     retourne les 8 séquences les plus similaires à notre séquence entrée
@@ -184,7 +174,6 @@ def abundance_greedy_clustering(amplicon_file, minseqlen, mincount, chunk_size, 
     """
     pass
     
-
 def fill(text, width=80):
     """
     Split text with a line return to respect fasta format
