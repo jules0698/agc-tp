@@ -21,6 +21,7 @@ import os
 import gzip
 import statistics
 from collections import Counter
+import itertools
 # https://github.com/briney/nwalign3
 # ftp://ftp.ncbi.nih.gov/blast/matrices/
 import nwalign3 as nw
@@ -160,7 +161,20 @@ def detect_chimera(perc_identity_matrix):
     retourne un booléen indiquant si la séquence candidate est une chimère(True)
     ou ne l'est pas(False)
     """
-    pass
+    sequenceparent1 = 0
+    sequenceparent2 = 0
+    std_list = []
+    for line in perc_identity_matrix:
+        std_list.append(statistics.stdev(line))
+        if line[0] > line[1]:
+            sequenceparent1 += 1
+        else:
+            sequenceparent2 += 1
+    if statistics.mean(std_list) > 5 and sequenceparent1 > 0 and sequenceparent2 > 0 :
+        return True
+    else:
+        return False
+    
 
 def chimera_removal(amplicon_file, minseqlen, mincount, chunk_size, kmer_size):
     """
